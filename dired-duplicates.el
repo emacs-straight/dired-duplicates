@@ -103,7 +103,7 @@ The executable used is defined by `dired-duplicates-checksum-exec'."
     (unless exec
       (user-error "Checksum program %s not found in `exec-path'" exec))
     (with-temp-buffer
-      (unless (zerop (call-process exec nil t nil file))
+      (unless (zerop (process-file exec nil t nil file))
         (error "Failed to start checksum program %s" exec))
       (goto-char (point-min))
       (if (looking-at "\\`[[:alnum:]]+")
@@ -192,8 +192,8 @@ The args ARG and NOCONFIRM are passed through from
                 (append (list (car dired-directory))
                         (flatten-list results)))
     (dired-revert arg noconfirm)
-    (dired-duplicates--post-process-dired-buffer results))
-  (message "Reverting buffer complete."))
+    (dired-duplicates--post-process-dired-buffer results)
+    (message "Reverted buffer, found %d files having duplicates." (length results))))
 
 (when (< emacs-major-version 29)
   (defun dired-duplicates--do-delete (&optional arg)
@@ -249,7 +249,7 @@ The results will be shown in a Dired buffer."
     (if-let ((default-directory "/")
              (results (dired-duplicates--generate-grouped-results directories)))
         (progn
-          (message "Finding duplicate files in %s completed." truncated-dirs)
+          (message "Found %d files having duplicates." (length results))
           (dired (cons "/" (flatten-list results)))
           (set-keymap-parent dired-duplicates-map (current-local-map))
           (use-local-map dired-duplicates-map)
